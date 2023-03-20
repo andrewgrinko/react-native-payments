@@ -7,9 +7,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.app.FragmentManager;
-import androidx.annotation.annotation.Nullable;
-import androidx.annotation.annotation.NonNull;
-import androidx.annotation.annotation.RequiresPermission;
+import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 import android.util.Log;
 
 import com.facebook.react.bridge.Callback;
