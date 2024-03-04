@@ -20,8 +20,7 @@ RCT_EXPORT_MODULE()
 - (NSDictionary *)constantsToExport
 {
     return @{
-             @"canMakePayments": @([PKPaymentAuthorizationViewController canMakePayments]),
-             @"supportedGateways": [GatewayManager getSupportedGateways]
+             @"canMakePayments": @([PKPaymentAuthorizationViewController canMakePayments])
              };
 }
 
@@ -38,13 +37,6 @@ RCT_EXPORT_METHOD(createPaymentRequest: (NSDictionary *)methodData
                   callback: (RCTResponseSenderBlock)callback)
 {
     NSString *merchantId = methodData[@"merchantIdentifier"];
-    NSDictionary *gatewayParameters = methodData[@"paymentMethodTokenizationParameters"][@"parameters"];
-    
-    if (gatewayParameters) {
-        self.hasGatewayParameters = true;
-        self.gatewayManager = [GatewayManager new];
-        [self.gatewayManager configureGateway:gatewayParameters merchantIdentifier:merchantId];
-    }
     
     self.paymentRequest = [[PKPaymentRequest alloc] init];
     self.paymentRequest.merchantIdentifier = merchantId;
@@ -161,19 +153,7 @@ RCT_EXPORT_METHOD(handleDetailsUpdate: (NSDictionary *)details
 {
     // Store completion for later use
     self.completion = completion;
-    
-    if (self.hasGatewayParameters) {
-        [self.gatewayManager createTokenWithPayment:payment completion:^(NSString * _Nullable token, NSError * _Nullable error) {
-            if (error) {
-                [self handleGatewayError:error];
-                return;
-            }
-            
-            [self handleUserAccept:payment paymentToken:token];
-        }];
-    } else {
-        [self handleUserAccept:payment paymentToken:nil];
-    }
+    [self handleUserAccept:payment paymentToken:nil];
 }
 
 
@@ -488,15 +468,6 @@ RCT_EXPORT_METHOD(handleDetailsUpdate: (NSDictionary *)details
     
     [self.bridge.eventDispatcher sendDeviceEventWithName:@"NativePayments:onuseraccept"
                                                     body:paymentResponse
-     ];
-}
-
-- (void)handleGatewayError:(NSError *_Nonnull)error
-{
-    [self.bridge.eventDispatcher sendDeviceEventWithName:@"NativePayments:ongatewayerror"
-                                                    body: @{
-                                                            @"error": [error localizedDescription]
-                                                            }
      ];
 }
 

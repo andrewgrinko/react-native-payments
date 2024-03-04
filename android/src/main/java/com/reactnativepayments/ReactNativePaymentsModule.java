@@ -141,15 +141,6 @@ public class ReactNativePaymentsModule extends ReactContextBaseJavaModule implem
         return REACT_CLASS;
     }
 
-    // Public Methods
-    // ---------------------------------------------------------------------------------------------
-    @ReactMethod
-    public void getSupportedGateways(Callback errorCallback, Callback successCallback) {
-        WritableNativeArray supportedGateways = new WritableNativeArray();
-
-        successCallback.invoke(supportedGateways);
-    }
-
     @ReactMethod
     public void canMakePayments(ReadableMap paymentMethodData, Callback errorCallback, Callback successCallback) {
         final Callback callback = successCallback;
@@ -253,31 +244,12 @@ public class ReactNativePaymentsModule extends ReactContextBaseJavaModule implem
         ReadableMap tokenizationParameters = paymentMethodData.getMap("paymentMethodTokenizationParameters");
         String tokenizationType = tokenizationParameters.getString("tokenizationType");
 
+        String publicKey = tokenizationParameters.getMap("parameters").getString("publicKey");
 
-        if (tokenizationType.equals("GATEWAY_TOKEN")) {
-            ReadableMap parameters = tokenizationParameters.getMap("parameters");
-            PaymentMethodTokenizationParameters.Builder parametersBuilder = PaymentMethodTokenizationParameters.newBuilder()
-                    .setPaymentMethodTokenizationType(PaymentMethodTokenizationType.PAYMENT_GATEWAY)
-                    .addParameter("gateway", parameters.getString("gateway"));
-
-            ReadableMapKeySetIterator iterator = parameters.keySetIterator();
-
-            while (iterator.hasNextKey()) {
-                String key = iterator.nextKey();
-
-                parametersBuilder.addParameter(key, parameters.getString(key));
-            }
-
-            return parametersBuilder.build();
-
-        } else {
-            String publicKey = tokenizationParameters.getMap("parameters").getString("publicKey");
-
-            return PaymentMethodTokenizationParameters.newBuilder()
-                    .setPaymentMethodTokenizationType(PaymentMethodTokenizationType.NETWORK_TOKEN)
-                    .addParameter("publicKey", publicKey)
-                    .build();
-        }
+        return PaymentMethodTokenizationParameters.newBuilder()
+                .setPaymentMethodTokenizationType(PaymentMethodTokenizationType.NETWORK_TOKEN)
+                .addParameter("publicKey", publicKey)
+                .build();
     }
 
     private static List buildLineItems(ReadableArray displayItems) {

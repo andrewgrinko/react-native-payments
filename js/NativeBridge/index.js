@@ -1,27 +1,22 @@
 // @flow
 
-import type { PaymentDetailsBase, PaymentComplete } from './types';
+import type { PaymentDetailsBase, PaymentComplete } from "./types";
 
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules, Platform } from "react-native";
 const { ReactNativePayments } = NativeModules;
 
-const IS_ANDROID = Platform.OS === 'android';
+const IS_ANDROID = Platform.OS === "android";
 
 const NativePayments: {
   canMakePayments: boolean,
   canMakePaymentsUsingNetworks: boolean,
-  supportedGateways: Array<string>,
-  createPaymentRequest: PaymentDetailsBase => Promise<any>,
-  handleDetailsUpdate: PaymentDetailsBase => Promise<any>,
+  createPaymentRequest: (PaymentDetailsBase) => Promise<any>,
+  handleDetailsUpdate: (PaymentDetailsBase) => Promise<any>,
   show: () => Promise<any>,
   abort: () => Promise<any>,
-  complete: PaymentComplete => Promise<any>,
-  getFullWalletAndroid: string => Promise<any>
+  complete: (PaymentComplete) => Promise<any>,
+  getFullWalletAndroid: (string) => Promise<any>,
 } = {
-  supportedGateways: IS_ANDROID
-    ? ['stripe', 'braintree'] // On Android, Payment Gateways are supported out of the gate.
-    : ReactNativePayments ? ReactNativePayments.supportedGateways : [],
-
   canMakePayments(methodData: object) {
     return new Promise((resolve, reject) => {
       if (IS_ANDROID) {
@@ -70,7 +65,7 @@ const NativePayments: {
         methodData,
         details,
         options,
-        err => {
+        (err) => {
           if (err) return reject(err);
 
           resolve();
@@ -90,7 +85,7 @@ const NativePayments: {
         return;
       }
 
-      ReactNativePayments.handleDetailsUpdate(details, err => {
+      ReactNativePayments.handleDetailsUpdate(details, (err) => {
         if (err) return reject(err);
 
         resolve();
@@ -106,7 +101,10 @@ const NativePayments: {
           details,
           options,
           (err) => reject(err),
-          (...args) => { console.log(args); resolve(true) }
+          (...args) => {
+            console.log(args);
+            resolve(true);
+          }
         );
 
         return;
@@ -129,7 +127,7 @@ const NativePayments: {
         return;
       }
 
-      ReactNativePayments.abort(err => {
+      ReactNativePayments.abort((err) => {
         if (err) return reject(err);
 
         resolve(true);
@@ -146,7 +144,7 @@ const NativePayments: {
         return;
       }
 
-      ReactNativePayments.complete(paymentStatus, err => {
+      ReactNativePayments.complete(paymentStatus, (err) => {
         if (err) return reject(err);
 
         resolve(true);
@@ -154,10 +152,14 @@ const NativePayments: {
     });
   },
 
-  getFullWalletAndroid(googleTransactionId: string, paymentMethodData: object, details: object): Promise<string> {
+  getFullWalletAndroid(
+    googleTransactionId: string,
+    paymentMethodData: object,
+    details: object
+  ): Promise<string> {
     return new Promise((resolve, reject) => {
       if (!IS_ANDROID) {
-        reject(new Error('This method is only available on Android.'));
+        reject(new Error("This method is only available on Android."));
 
         return;
       }
@@ -167,16 +169,17 @@ const NativePayments: {
         paymentMethodData,
         details,
         (err) => reject(err),
-        (serializedPaymentToken) => resolve({
-          serializedPaymentToken,
-          paymentToken: JSON.parse(serializedPaymentToken),
-          /** Leave previous typo in order not to create a breaking change **/
-          serializedPaymenToken: serializedPaymentToken,
-          paymenToken: JSON.parse(serializedPaymentToken)
-        })
+        (serializedPaymentToken) =>
+          resolve({
+            serializedPaymentToken,
+            paymentToken: JSON.parse(serializedPaymentToken),
+            /** Leave previous typo in order not to create a breaking change **/
+            serializedPaymenToken: serializedPaymentToken,
+            paymenToken: JSON.parse(serializedPaymentToken),
+          })
       );
     });
-  }
+  },
 };
 
 export default NativePayments;
