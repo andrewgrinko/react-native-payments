@@ -62,7 +62,12 @@ public class ReactNativePaymentsModule extends ReactContextBaseJavaModule implem
             // retrieve the error code, if available
             int errorCode = -1;
             if (data != null) {
-                errorCode = data.getIntExtra(WalletConstants.EXTRA_ERROR_CODE, -1);
+                try {
+                    errorCode = data.getIntExtra(WalletConstants.EXTRA_ERROR_CODE, -1);
+                } catch (Exception e) {
+                    Log.w(REACT_CLASS, "Could not extract error code from Intent extras: " + e.getMessage());
+                    errorCode = -1;
+                }
             }
             switch (requestCode) {
                 case LOAD_MASKED_WALLET_REQUEST_CODE:
